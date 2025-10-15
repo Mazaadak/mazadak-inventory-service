@@ -2,4 +2,22 @@ spring:
   application:
     name: inventory-service
   config:
-    import: "configserver:http://localhost:18071"
+    import: optional:configserver:http://localhost:18071
+  datasource:
+    url: jdbc:postgresql://localhost:5432/inventory_db
+    username: postgres
+    password: postgres
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+  flyway:
+    enabled: false
+  eureka:
+    client:
+      enabled: false
