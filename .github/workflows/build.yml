@@ -1,0 +1,14 @@
+name: Build
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  build:
+    uses: Mazaadak/.github/.github/workflows/java-build-package-push.yml@main
+    with:
+      java-version: '21'
+      skip-tests: true
