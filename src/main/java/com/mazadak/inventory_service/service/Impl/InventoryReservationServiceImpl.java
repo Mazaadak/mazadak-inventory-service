@@ -35,20 +35,23 @@ public class InventoryReservationServiceImpl implements InventoryReservationServ
     @Override
     @Transactional
     public InventoryReservationDTO reserveInventory(ReserveInventoryRequest request) {
-        // Check for existing reservation with the same idempotency key
+        log.info("Reserving inventory for product {}", request.productId());
         Optional<InventoryReservation> inventoryReservation= inventoryReservationRepository.findByInventory_ProductIdAndIdempotencyKey(
                 request.productId(), request.idempotencyKey());
 
+        log.info("Found existing reservation: {}", inventoryReservation.isPresent());
         if (inventoryReservation.isPresent()) { // request has been processed
+            log.info("Found existing reservation: {}", inventoryReservation.get());
             return inventoryReservationMapper.toInventoryReservationDTO(inventoryReservation.get());
         }
 
         Inventory inventory = inventoryService.findOrCreateInventory(request.productId());
+        log.info("Found inventory: {}", inventory);
 
-        // Check if there's enough inventory
         int availableQuantity = inventory.getTotalQuantity() - inventory.getReservedQuantity();
-
+        log.info("Available quantity: {}", availableQuantity);
         if (availableQuantity < request.quantity()) {
+            log.info("Not enough inventory");
             throw new NotEnoughInventoryException(
                 inventory.getProductId(), 
                 request.quantity(), 
@@ -56,14 +59,14 @@ public class InventoryReservationServiceImpl implements InventoryReservationServ
             );
         }
 
-        // Update inventory with idempotency key
+        log.info("Updating inventory with idempotency key");
         inventory.setIdempotencyKey(request.idempotencyKey());
-        
-        // Update reserved quantity
+
+        log.info("Updating reserved quantity");
         inventory.setReservedQuantity(inventory.getReservedQuantity() + request.quantity());
         inventory = inventoryRepository.save(inventory);
 
-        // Create reservation
+        log.info("Creating reservation");
         InventoryReservation updatedReservation = InventoryReservation.builder()
                 .userId(request.userId())
                 .inventory(inventory)
@@ -72,7 +75,7 @@ public class InventoryReservationServiceImpl implements InventoryReservationServ
                 .idempotencyKey(request.idempotencyKey())
                 .build();
 
-        // Save reservation
+        log.info("Saving reservation");
         inventoryReservationRepository.save(updatedReservation);
 
         return inventoryReservationMapper.toInventoryReservationDTO(updatedReservation);
@@ -81,20 +84,24 @@ public class InventoryReservationServiceImpl implements InventoryReservationServ
     @Override
     @Transactional
     public InventoryReservationDTO releaseReservation(Long reservationId) {
+        log.info("Releasing reservation with id: {}", reservationId);
 
         InventoryReservation inventoryReservation = inventoryReservationRepository.findById(reservationId)
-                .orElseThrow(() -> new ReservationNotFoundException(reservationId));
+                .orElseThrow(() -> {
+                            log.error("Reservation not found with id: {}", reservationId);
+                            return new ReservationNotFoundException(reservationId) ;});
 
-        // update reservation status
+        log.info("Updating reservation status");
         inventoryReservation.release();
 
-        // reduce reserved quantity in the inventory
+        log.info("Updating reserved quantity");
         inventoryReservation.getInventory()
                 .setReservedQuantity(inventoryReservation.getInventory()
                         .getReservedQuantity() - inventoryReservation.getQuantity());
 
-        // save changes
+        log.info("Saving inventory");
         inventoryRepository.save(inventoryReservation.getInventory());
+        log.info("Saving reservation");
         inventoryReservationRepository.save(inventoryReservation);
 
         return inventoryReservationMapper.toInventoryReservationDTO(inventoryReservation);
@@ -103,25 +110,28 @@ public class InventoryReservationServiceImpl implements InventoryReservationServ
     @Override
     @Transactional
     public InventoryReservationDTO confirmReservation(Long reservationId, ConfirmReservationRequest request) {
-
+        log.info("Confirming reservation with id: {}", reservationId);
         InventoryReservation inventoryReservation = inventoryReservationRepository.findById(reservationId)
-                .orElseThrow(() -> new ReservationNotFoundException(reservationId));
+                .orElseThrow(() ->{
+                    log.error("Reservation not found with id: {}", reservationId);
+                return new ReservationNotFoundException(reservationId);});
 
-        // Update reservation status
+        log.info("Updating reservation status");
         inventoryReservation.confirm(request.orderId());
 
-        //reduce total quantity in the inventory
+        log.info("Updating total quantity");
         inventoryReservation.getInventory()
                         .setTotalQuantity(inventoryReservation.getInventory()
                         .getTotalQuantity() - inventoryReservation.getQuantity());
 
-        //reduce reserved quantity in the inventory
+        log.info("Updating reserved quantity");
         inventoryReservation.getInventory()
                 .setReservedQuantity(inventoryReservation.getInventory()
                         .getReservedQuantity() - inventoryReservation.getQuantity());
 
-        //save changes
+        log.info("Saving inventory");
         inventoryRepository.save(inventoryReservation.getInventory());
+        log.info("Saving reservation");
         inventoryReservationRepository.save(inventoryReservation);
 
         return inventoryReservationMapper.toInventoryReservationDTO(inventoryReservation);
@@ -129,8 +139,12 @@ public class InventoryReservationServiceImpl implements InventoryReservationServ
 
     @Override
     public InventoryReservationDTO getReservation(Long reservationId) {
+        log.info("Getting reservation with id: {}", reservationId);
         InventoryReservation inventoryReservation = inventoryReservationRepository.findById(reservationId)
-                .orElseThrow(() -> new ReservationNotFoundException(reservationId));
+                .orElseThrow(() -> {
+                    log.error("Reservation not found with id: {}", reservationId);
+                    return new ReservationNotFoundException(reservationId);
+                });
         return inventoryReservationMapper.toInventoryReservationDTO(inventoryReservation);
     }
 }
