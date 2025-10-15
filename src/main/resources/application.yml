@@ -1,3 +1,8 @@
+app:
+  reservation:
+    timeout-minutes: 10
+    cleanup-interval-ms: 300000
+
 spring:
   application:
     name: inventory-service

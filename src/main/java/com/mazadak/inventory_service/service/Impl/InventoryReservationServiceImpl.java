@@ -4,6 +4,7 @@ import com.mazadak.inventory_service.dto.request.ConfirmReservationRequest;
 import com.mazadak.inventory_service.dto.request.ReserveInventoryRequest;
 import com.mazadak.inventory_service.dto.response.InventoryReservationDTO;
 import com.mazadak.inventory_service.exception.NotEnoughInventoryException;
+import com.mazadak.inventory_service.exception.ReservationExpiredException;
 import com.mazadak.inventory_service.exception.ReservationNotFoundException;
 import com.mazadak.inventory_service.mapper.InventoryReservationMapper;
 import com.mazadak.inventory_service.model.Inventory;
@@ -16,8 +17,10 @@ import com.mazadak.inventory_service.service.InventoryService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 
@@ -31,6 +34,8 @@ public class InventoryReservationServiceImpl implements InventoryReservationServ
     private final InventoryService inventoryService;
     private final InventoryReservationMapper inventoryReservationMapper;
 
+    @Value("${app.reservation.timeout-minutes}")
+    private int reservationTimeoutMinutes;
 
     @Override
     @Transactional
@@ -72,6 +77,7 @@ public class InventoryReservationServiceImpl implements InventoryReservationServ
                 .inventory(inventory)
                 .quantity(request.quantity())
                 .status(ReservationStatus.RESERVED)
+                .expiresAt(LocalDateTime.now().plusMinutes(reservationTimeoutMinutes))
                 .idempotencyKey(request.idempotencyKey())
                 .build();
 
@@ -115,6 +121,13 @@ public class InventoryReservationServiceImpl implements InventoryReservationServ
                 .orElseThrow(() ->{
                     log.error("Reservation not found with id: {}", reservationId);
                 return new ReservationNotFoundException(reservationId);});
+
+        log.info("Check for reservation expiration");
+        if (inventoryReservation.getExpiresAt().isBefore(LocalDateTime.now())) {
+            log.info("Reservation has expired");
+            releaseReservation(reservationId);
+            throw new ReservationExpiredException(reservationId);
+        }
 
         log.info("Updating reservation status");
         inventoryReservation.confirm(request.orderId());
