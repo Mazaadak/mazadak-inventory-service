@@ -1,18 +1,12 @@
-app:
-  reservation:
-    timeout-minutes: 10
-    cleanup-interval-ms: 300000
+server:
+  port: 18089
 
 spring:
   application:
     name: inventory-service
   config:
-    import: optional:configserver:http://localhost:18071
-  datasource:
-    url: jdbc:postgresql://localhost:5432/inventory_db
-    username: postgres
-    password: postgres
-    driver-class-name: org.postgresql.Driver
+    import: "configserver:http://localhost:18071"
+
   jpa:
     hibernate:
       ddl-auto: update
@@ -23,6 +17,3 @@ spring:
         dialect: org.hibernate.dialect.PostgreSQLDialect
   flyway:
     enabled: false
-  eureka:
-    client:
-      enabled: false
