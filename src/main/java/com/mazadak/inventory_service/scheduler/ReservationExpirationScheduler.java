@@ -11,7 +11,10 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.UUID;
 
 @Slf4j
 @Component
@@ -38,7 +41,8 @@ public class ReservationExpirationScheduler {
                 log.info("Processing reservation ID: {}, expires at: {}",
                         reservation.getInventoryReservationId(),
                         reservation.getExpiresAt());
-                reservationService.releaseReservation(reservation.getInventoryReservationId());
+                UUID idempotencyKey = UUID.randomUUID();
+                reservationService.releaseReservation(idempotencyKey, Collections.singletonList(reservation.getInventoryReservationId()));
                 log.info("Successfully released reservation ID: {}", reservation.getInventoryReservationId());
             } catch (Exception e) {
                 log.error("Failed to release reservation ID: {}", reservation.getInventoryReservationId(), e);

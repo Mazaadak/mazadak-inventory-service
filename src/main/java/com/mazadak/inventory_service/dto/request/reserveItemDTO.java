@@ -5,7 +5,7 @@ import jakarta.validation.constraints.Positive;
 
 import java.util.UUID;
 
-public record AddInventoryRequest (
-       @NotNull UUID productId,
-       @Positive int quantity
-){ }
+public record reserveItemDTO (
+        @NotNull UUID productId,
+        @Positive int quantity ){
+}

@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-public interface InventoryReservationRepository extends JpaRepository<InventoryReservation, Long> {
+public interface InventoryReservationRepository extends JpaRepository<InventoryReservation, UUID> {
 
 
     @Query("SELECT r FROM InventoryReservation r WHERE r.status = :status AND r.expiresAt < :expiresAt")
@@ -19,5 +19,5 @@ public interface InventoryReservationRepository extends JpaRepository<InventoryR
             @Param("status") ReservationStatus status,
             @Param("expiresAt") LocalDateTime expiresAt
     );
-    Optional<InventoryReservation> findByInventory_ProductIdAndIdempotencyKey(Long productId, UUID idempotencyKey);
+    Optional<InventoryReservation> findByInventory_ProductIdAndIdempotencyKey(UUID productId, UUID idempotencyKey);
 }
