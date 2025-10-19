@@ -5,14 +5,17 @@ import com.mazadak.inventory_service.dto.request.ReserveInventoryRequest;
 import com.mazadak.inventory_service.dto.response.InventoryReservationDTO;
 import com.mazadak.inventory_service.model.InventoryReservation;
 
+import java.util.List;
+import java.util.UUID;
+
 public interface InventoryReservationService {
 
-    InventoryReservationDTO reserveInventory(ReserveInventoryRequest request);
+    List<UUID> reserveInventory(UUID idempotencyKey, ReserveInventoryRequest request);
 
-    InventoryReservationDTO releaseReservation(Long reservationId);
+    List<InventoryReservationDTO> releaseReservation(UUID idempotencyKey, List<UUID> reservationIds);
 
-    InventoryReservationDTO confirmReservation(Long reservationId, ConfirmReservationRequest request);
+    List<InventoryReservationDTO> confirmReservation(UUID idempotencyKey, ConfirmReservationRequest request);
 
-    InventoryReservationDTO getReservation(Long reservationId);
+    InventoryReservationDTO getReservation(UUID reservationId);
 
 }

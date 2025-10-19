@@ -18,12 +18,12 @@ import java.util.UUID;
 @NoArgsConstructor
 public class Inventory extends BaseEntity {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.UUID)
     @Column(name = "inventory_id")
-    private Long inventoryId;
+    private UUID inventoryId;
 
     @Column(name = "product_id", nullable = false)
-    private Long productId;
+    private UUID productId;
 
     @Column(name = "total_quantity")
     private int totalQuantity;

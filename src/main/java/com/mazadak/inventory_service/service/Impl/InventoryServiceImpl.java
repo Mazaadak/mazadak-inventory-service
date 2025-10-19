@@ -13,6 +13,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
+import java.util.UUID;
 
 
 @Service
@@ -24,12 +25,12 @@ public class InventoryServiceImpl implements InventoryService {
     private final InventoryMapper inventoryMapper;
 
 
-    public Inventory findOrCreateInventory(Long productId) {
+    public Inventory findOrCreateInventory(UUID productId) {
         log.info("Finding or creating inventory for product {}", productId);
         return inventoryRepository.findByProductId(productId)
                 .orElseGet(() -> createNewInventory(productId));
     }
-    Inventory createNewInventory(Long productId) {
+    Inventory createNewInventory(UUID productId) {
         log.info("Creating new inventory for product {}", productId);
         Inventory inventory = new Inventory();
         inventory.setProductId(productId);
@@ -40,9 +41,9 @@ public class InventoryServiceImpl implements InventoryService {
 
     @Override
     @Transactional
-    public InventoryDTO addInventory(AddInventoryRequest request) {
+    public InventoryDTO addInventory(UUID idempotencyKey, AddInventoryRequest request) {
         log.info("Adding inventory for product {}", request.productId());
-        Optional<Inventory> existing = inventoryRepository.findByIdempotencyKey(request.idempotencyKey());
+        Optional<Inventory> existing = inventoryRepository.findByIdempotencyKey(idempotencyKey);
         if (existing.isPresent()) {
             log.info("request has been processed");
             return inventoryMapper.toInventoryDTO(existing.get());
@@ -54,7 +55,7 @@ public class InventoryServiceImpl implements InventoryService {
         inventory.setTotalQuantity(inventory.getTotalQuantity() + request.quantity());
 
         log.info("Updating idempotency key");
-        inventory.setIdempotencyKey(request.idempotencyKey());
+        inventory.setIdempotencyKey(idempotencyKey);
 
         log.info("Saving inventory");
         return inventoryMapper.toInventoryDTO(inventoryRepository.save(inventory));
@@ -62,13 +63,13 @@ public class InventoryServiceImpl implements InventoryService {
 
 
     @Override
-    public InventoryDTO getInventory(Long productId) {
+    public InventoryDTO getInventory(UUID productId) {
         log.info("Getting inventory for product {}", productId);
         return inventoryMapper.toInventoryDTO(findOrCreateInventory(productId));
     }
 
     @Override
-    public InventoryDTO reduceQuantity(Long productId, int quantity) {
+    public InventoryDTO reduceQuantity(UUID productId, int quantity) {
         log.info("Reducing quantity for product {}", productId);
         Inventory inventory = inventoryRepository.findByProductId(productId).
                 orElseThrow(()-> {
@@ -85,7 +86,7 @@ public class InventoryServiceImpl implements InventoryService {
     }
 
     @Override
-    public void deleteInventory(Long productId) {
+    public void deleteInventory(UUID productId) {
         log.info("Deleting inventory for product {}", productId);
         Inventory inventory = inventoryRepository.findByProductId(productId).
                 orElseThrow(()-> {

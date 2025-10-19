@@ -5,6 +5,7 @@ import jakarta.validation.constraints.NotNull;
 import java.util.List;
 import java.util.UUID;
 
-public record ConfirmReservationRequest(
+public record ReleaseReservationRequest(
         List<UUID> reservationIds,
-        @NotNull UUID orderId ) { }
+       @NotNull  UUID orderId
+){ }

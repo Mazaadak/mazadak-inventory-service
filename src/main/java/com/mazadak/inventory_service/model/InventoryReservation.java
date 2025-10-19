@@ -22,12 +22,9 @@ import java.util.UUID;
 public class InventoryReservation extends BaseEntity {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.UUID)
     @Column(name = "inventory_reservation_id", nullable = false, updatable = false)
-    private Long inventoryReservationId;
-
-    @Column(name = "user_id")
-    private Long userId;
+    private UUID inventoryReservationId;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "inventory_id", nullable = false)
@@ -43,7 +40,7 @@ public class InventoryReservation extends BaseEntity {
     private ReservationStatus status = ReservationStatus.RESERVED;
 
     @Column(name = "order_id")
-    private Long orderId;
+    private UUID orderId;
 
     @Column(name = "idempotency_key")
     private UUID idempotencyKey;
@@ -64,7 +61,7 @@ public class InventoryReservation extends BaseEntity {
 
 
 
-    public void confirm(Long orderId) {
+    public void confirm(UUID orderId) {
         if (this.status != ReservationStatus.RESERVED) {
             throw new IllegalStateException("Only RESERVED reservations can be confirmed");
         }

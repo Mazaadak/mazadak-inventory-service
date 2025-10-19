@@ -4,16 +4,18 @@ import com.mazadak.inventory_service.dto.request.AddInventoryRequest;
 import com.mazadak.inventory_service.dto.response.InventoryDTO;
 import com.mazadak.inventory_service.model.Inventory;
 
+import java.util.UUID;
+
 public interface InventoryService {
 
-    Inventory findOrCreateInventory(Long productId);
+    Inventory findOrCreateInventory(UUID productId);
 
-    InventoryDTO getInventory(Long productId);
+    InventoryDTO getInventory(UUID productId);
 
-    InventoryDTO addInventory(AddInventoryRequest request);
+    InventoryDTO addInventory(UUID idempotencyKey, AddInventoryRequest request);
 
-    InventoryDTO reduceQuantity(Long productId, int quantity);
+    InventoryDTO reduceQuantity(UUID productId, int quantity);
 
-    void deleteInventory(Long productId);
+    void deleteInventory(UUID productId);
 
 }
