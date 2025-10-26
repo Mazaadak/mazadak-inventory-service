@@ -18,4 +18,7 @@ public interface InventoryService {
 
     void deleteInventory(UUID productId);
 
+    Boolean existsByProductId(UUID productId);
+
+    void restoreInventory(UUID productId);
 }

@@ -12,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -30,6 +31,7 @@ public class InventoryServiceImpl implements InventoryService {
         return inventoryRepository.findByProductId(productId)
                 .orElseGet(() -> createNewInventory(productId));
     }
+
     Inventory createNewInventory(UUID productId) {
         log.info("Creating new inventory for product {}", productId);
         Inventory inventory = new Inventory();
@@ -50,6 +52,13 @@ public class InventoryServiceImpl implements InventoryService {
         }
 
         Inventory inventory = findOrCreateInventory(request.productId());
+
+            if (inventory.isDeleted()) {
+                inventory.setDeleted(false);
+                inventory.setTotalQuantity(0);
+                inventory.setReservations(List.of());
+                inventory.setReservedQuantity(0);
+            }
 
         log.info("Updating total quantity");
         inventory.setTotalQuantity(inventory.getTotalQuantity() + request.quantity());
@@ -93,6 +102,21 @@ public class InventoryServiceImpl implements InventoryService {
                     log.error("Inventory Not Found");
                    return new InventoryNotFoundException(productId);
                 });
-        inventoryRepository.delete(inventory);
+        inventory.setDeleted(true);
+        inventoryRepository.save(inventory);
+    }
+
+    @Override
+    public Boolean existsByProductId(UUID productId) {
+        return inventoryRepository.existsByProductId(productId);
+    }
+
+    @Override
+    public void restoreInventory(UUID productId) {
+        var inventory = inventoryRepository.findByProductId(productId)
+                .orElseThrow(() -> new InventoryNotFoundException(productId));
+
+        inventory.setDeleted(false);
+        inventoryRepository.save(inventory);
     }
 }

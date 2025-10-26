@@ -43,12 +43,22 @@ public class InventoryController {
         return ResponseEntity.ok(inventoryService.getInventory(productId));
     }
 
+    @GetMapping("/exists/{productId}")
+    public ResponseEntity<Boolean> existsByProductId(@PathVariable UUID productId) {
+        return ResponseEntity.ok(inventoryService.existsByProductId(productId));
+    }
+
     @DeleteMapping("/{productId}")
     public ResponseEntity<Void> deleteInventory(
             @PathVariable @NotNull UUID productId) {
-
         inventoryService.deleteInventory(productId);
         return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/{productId}")
+    public ResponseEntity<Void> restoreInventory(@PathVariable UUID productId) {
+        inventoryService.restoreInventory(productId);
+        return ResponseEntity.ok().build();
     }
 
 }

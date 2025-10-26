@@ -37,6 +37,8 @@ public class Inventory extends BaseEntity {
     @Column(name = "idempotency_key", unique = true)
     private UUID idempotencyKey;
 
+    private boolean deleted = false;
+
     public void reduceQuantity(int quantity) {
         if (quantity > totalQuantity) {
             throw new IllegalArgumentException("Not enough inventory");

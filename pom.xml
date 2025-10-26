@@ -129,7 +129,8 @@
                 <version>3.4.2</version>
                 <configuration>
                     <to>
-                        <image>mazaadak/${project.artifactId}:v1</image>
+<!--                        <image>mazaadak/${project.artifactId}:v1</image>-->
+                        <image>hasalism/${project.artifactId}:v1</image>
                     </to>
                 </configuration>
             </plugin>
