@@ -2,6 +2,7 @@ package com.mazadak.inventory_service.controller;
 
 
 import com.mazadak.inventory_service.dto.request.AddInventoryRequest;
+import com.mazadak.inventory_service.dto.request.UpdateInventoryRequest;
 import com.mazadak.inventory_service.dto.response.InventoryDTO;
 import com.mazadak.inventory_service.service.InventoryService;
 import jakarta.validation.Valid;
@@ -49,6 +50,14 @@ public class InventoryController {
 
         inventoryService.deleteInventory(productId);
         return ResponseEntity.noContent().build();
+    }
+
+    @PutMapping("/{productId}")
+    public ResponseEntity<InventoryDTO> updateInventory(
+            @PathVariable @NotNull UUID productId,
+            @Valid @RequestBody UpdateInventoryRequest request) {
+
+        return ResponseEntity.ok(inventoryService.updateInventory(productId, request));
     }
 
 }

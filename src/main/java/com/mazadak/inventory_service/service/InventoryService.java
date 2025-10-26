@@ -1,6 +1,7 @@
 package com.mazadak.inventory_service.service;
 
 import com.mazadak.inventory_service.dto.request.AddInventoryRequest;
+import com.mazadak.inventory_service.dto.request.UpdateInventoryRequest;
 import com.mazadak.inventory_service.dto.response.InventoryDTO;
 import com.mazadak.inventory_service.model.Inventory;
 
@@ -15,6 +16,8 @@ public interface InventoryService {
     InventoryDTO addInventory(UUID idempotencyKey, AddInventoryRequest request);
 
     InventoryDTO reduceQuantity(UUID productId, int quantity);
+
+    InventoryDTO updateInventory(UUID productId, UpdateInventoryRequest request);
 
     void deleteInventory(UUID productId);
 

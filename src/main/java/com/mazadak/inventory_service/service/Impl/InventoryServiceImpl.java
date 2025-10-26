@@ -1,8 +1,10 @@
 package com.mazadak.inventory_service.service.Impl;
 
 import com.mazadak.inventory_service.dto.request.AddInventoryRequest;
+import com.mazadak.inventory_service.dto.request.UpdateInventoryRequest;
 import com.mazadak.inventory_service.dto.response.InventoryDTO;
 import com.mazadak.inventory_service.exception.InventoryNotFoundException;
+import com.mazadak.inventory_service.exception.NotEnoughInventoryException;
 import com.mazadak.inventory_service.mapper.InventoryMapper;
 import com.mazadak.inventory_service.model.Inventory;
 import com.mazadak.inventory_service.repository.InventoryRepository;
@@ -94,5 +96,30 @@ public class InventoryServiceImpl implements InventoryService {
                    return new InventoryNotFoundException(productId);
                 });
         inventoryRepository.delete(inventory);
+    }
+
+    @Override
+    public InventoryDTO updateInventory(UUID productId, UpdateInventoryRequest request) {
+        int quantity = request.quantity();
+        log.info("Updating inventory for product {} to {} ", productId, quantity);
+        Inventory inventory = inventoryRepository.findByProductId(productId).
+                orElseThrow(()-> {
+                    log.error("Inventory Not Found");
+                    return new InventoryNotFoundException(productId);
+                });
+        int availableQuantity = inventory.getTotalQuantity() - inventory.getReservedQuantity();
+        if (quantity < inventory.getReservedQuantity()) {
+            log.error("Not enough inventory");
+            throw new NotEnoughInventoryException(
+                    inventory.getProductId(),
+                    quantity,
+                    availableQuantity
+            );
+        }
+        log.info("Updating total quantity to {}", quantity);
+        inventory.setTotalQuantity(quantity);
+        inventoryRepository.save(inventory);
+        log.info("Inventory updated for product {} to {}", productId, quantity);
+        return inventoryMapper.toInventoryDTO(inventory);
     }
 }
