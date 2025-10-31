@@ -15,4 +15,6 @@ public interface InventoryRepository extends JpaRepository<Inventory, Long> {
     Optional<Inventory> findByIdempotencyKey(UUID idempotencyKey);
 
     Boolean existsByProductId(UUID productId);
+
+    Boolean existsByProductIdAndDeletedFalse(UUID productId);
 }

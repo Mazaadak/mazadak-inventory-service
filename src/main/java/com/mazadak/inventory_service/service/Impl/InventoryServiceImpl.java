@@ -1,5 +1,8 @@
 package com.mazadak.inventory_service.service.Impl;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.mazadak.inventory_service.dto.event.InventoryDeletedEvent;
 import com.mazadak.inventory_service.dto.request.AddInventoryRequest;
 import com.mazadak.inventory_service.dto.request.UpdateInventoryRequest;
 import com.mazadak.inventory_service.dto.response.InventoryDTO;
@@ -7,13 +10,16 @@ import com.mazadak.inventory_service.exception.InventoryNotFoundException;
 import com.mazadak.inventory_service.exception.NotEnoughInventoryException;
 import com.mazadak.inventory_service.mapper.InventoryMapper;
 import com.mazadak.inventory_service.model.Inventory;
+import com.mazadak.inventory_service.model.OutboxEvent;
 import com.mazadak.inventory_service.repository.InventoryRepository;
+import com.mazadak.inventory_service.repository.OutboxEventRepository;
 import com.mazadak.inventory_service.service.InventoryService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -26,7 +32,14 @@ public class InventoryServiceImpl implements InventoryService {
 
     private final InventoryRepository inventoryRepository;
     private final InventoryMapper inventoryMapper;
+    private final ObjectMapper objectMapper;
+    private final OutboxEventRepository outboxEventRepository;
 
+    public Inventory findInventoryByProductId(UUID productId) {
+        log.info("Finding inventory for product {}", productId);
+        return inventoryRepository.findByProductId(productId)
+                .orElseThrow(() -> new InventoryNotFoundException(productId));
+    }
 
     public Inventory findOrCreateInventory(UUID productId) {
         log.info("Finding or creating inventory for product {}", productId);
@@ -58,7 +71,7 @@ public class InventoryServiceImpl implements InventoryService {
             if (inventory.isDeleted()) {
                 inventory.setDeleted(false);
                 inventory.setTotalQuantity(0);
-                inventory.setReservations(List.of());
+                inventory.getReservations().clear();
                 inventory.setReservedQuantity(0);
             }
 
@@ -76,7 +89,7 @@ public class InventoryServiceImpl implements InventoryService {
     @Override
     public InventoryDTO getInventory(UUID productId) {
         log.info("Getting inventory for product {}", productId);
-        return inventoryMapper.toInventoryDTO(findOrCreateInventory(productId));
+        return inventoryMapper.toInventoryDTO(findInventoryByProductId(productId));
     }
 
     @Override
@@ -97,6 +110,7 @@ public class InventoryServiceImpl implements InventoryService {
     }
 
     @Override
+    @Transactional
     public void deleteInventory(UUID productId) {
         log.info("Deleting inventory for product {}", productId);
         Inventory inventory = inventoryRepository.findByProductId(productId).
@@ -105,12 +119,25 @@ public class InventoryServiceImpl implements InventoryService {
                    return new InventoryNotFoundException(productId);
                 });
         inventory.setDeleted(true);
+        try {
+            var deletedEvent = new InventoryDeletedEvent(productId);
+            var outboxEvent = new OutboxEvent(
+                    "Inventory",
+                    "InventoryDeleted",
+                    objectMapper.writeValueAsString(deletedEvent)
+            );
+            outboxEventRepository.save(outboxEvent);
+        } catch (JsonProcessingException e) {
+            log.error("Failed to serialize InventoryDeletedEvent for inventory with product {}", productId, e);
+        }
+
         inventoryRepository.save(inventory);
     }
 
     @Override
     public Boolean existsByProductId(UUID productId) {
-        return inventoryRepository.existsByProductId(productId);
+        log.info("Checking if inventory exists for product {}", productId);
+        return inventoryRepository.existsByProductIdAndDeletedFalse(productId);
     }
 
     @Override
