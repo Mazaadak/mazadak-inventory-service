@@ -53,7 +53,7 @@ public class InventoryServiceImpl implements InventoryService {
         inventory.setProductId(productId);
         inventory.setTotalQuantity(0);
         inventory.setReservedQuantity(0);
-        inventoryRepository.save(inventory);
+//        inventoryRepository.save(inventory);
         return inventory;
     }
 

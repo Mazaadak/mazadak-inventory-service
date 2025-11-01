@@ -19,14 +19,14 @@ import java.time.LocalDateTime;
 public class BaseEntity {
 
     @CreationTimestamp
-    @Column(name = "created_at", nullable = false)
+    @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
     @UpdateTimestamp
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
 
-    @Column(name = "created_by")
+    @Column(name = "created_by", updatable = false)
     @CreatedBy
     private String createdBy;
 
