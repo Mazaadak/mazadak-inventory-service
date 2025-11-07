@@ -2,9 +2,7 @@ package com.mazadak.inventory_service.model;
 
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -13,9 +11,12 @@ import java.util.UUID;
 
 @Entity
 @Table(name = "inventories")
-@Data
-@AllArgsConstructor
+@Getter
+@Setter
 @NoArgsConstructor
+@AllArgsConstructor
+@ToString(exclude = "reservations")
+@EqualsAndHashCode(exclude = "reservations")
 public class Inventory extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)

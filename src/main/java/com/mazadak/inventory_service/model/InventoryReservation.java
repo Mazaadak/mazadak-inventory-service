@@ -4,10 +4,7 @@ import com.mazadak.inventory_service.model.enums.ReservationStatus;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -15,10 +12,13 @@ import java.util.UUID;
 
 @Entity
 @Table(name = "inventory_reservations")
-@Data
+@Getter
+@Setter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@ToString(exclude = "inventory")
+@EqualsAndHashCode(exclude = "inventory")
 public class InventoryReservation extends BaseEntity {
 
     @Id
