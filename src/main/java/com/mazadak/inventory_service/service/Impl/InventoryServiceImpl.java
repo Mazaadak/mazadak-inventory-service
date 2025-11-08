@@ -2,12 +2,12 @@ package com.mazadak.inventory_service.service.Impl;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.mazadak.common.exception.domain.inventory.NotEnoughStockException;
+import com.mazadak.common.exception.shared.ResourceNotFoundException;
 import com.mazadak.inventory_service.dto.event.InventoryDeletedEvent;
 import com.mazadak.inventory_service.dto.request.AddInventoryRequest;
 import com.mazadak.inventory_service.dto.request.UpdateInventoryRequest;
 import com.mazadak.inventory_service.dto.response.InventoryDTO;
-import com.mazadak.inventory_service.exception.InventoryNotFoundException;
-import com.mazadak.inventory_service.exception.NotEnoughInventoryException;
 import com.mazadak.inventory_service.mapper.InventoryMapper;
 import com.mazadak.inventory_service.model.Inventory;
 import com.mazadak.inventory_service.model.OutboxEvent;
@@ -19,8 +19,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -38,7 +36,7 @@ public class InventoryServiceImpl implements InventoryService {
     public Inventory findInventoryByProductId(UUID productId) {
         log.info("Finding inventory for product {}", productId);
         return inventoryRepository.findByProductId(productId)
-                .orElseThrow(() -> new InventoryNotFoundException(productId));
+                .orElseThrow(() -> new ResourceNotFoundException("Inventory", "productId", productId.toString()));
     }
 
     public Inventory findOrCreateInventory(UUID productId) {
@@ -99,7 +97,7 @@ public class InventoryServiceImpl implements InventoryService {
         Inventory inventory = inventoryRepository.findByProductId(productId).
                 orElseThrow(()-> {
                     log.error("Inventory Not Found");
-                    return new InventoryNotFoundException(productId);
+                    return new ResourceNotFoundException("Inventory", "productId", productId.toString());
                 });
 
         log.info("Reducing quantity");
@@ -117,7 +115,7 @@ public class InventoryServiceImpl implements InventoryService {
         Inventory inventory = inventoryRepository.findByProductId(productId).
                 orElseThrow(()-> {
                     log.error("Inventory Not Found");
-                   return new InventoryNotFoundException(productId);
+                   return new ResourceNotFoundException("Inventory", "productId", productId.toString());
                 });
         inventory.setDeleted(true);
         try {
@@ -144,7 +142,7 @@ public class InventoryServiceImpl implements InventoryService {
     @Override
     public void restoreInventory(UUID productId) {
         var inventory = inventoryRepository.findByProductId(productId)
-                .orElseThrow(() -> new InventoryNotFoundException(productId));
+                .orElseThrow(() -> new ResourceNotFoundException("Inventory", "productId", productId.toString()));
 
         inventory.setDeleted(false);
         inventoryRepository.save(inventory);
@@ -157,12 +155,12 @@ public class InventoryServiceImpl implements InventoryService {
         Inventory inventory = inventoryRepository.findByProductId(productId).
                 orElseThrow(()-> {
                     log.error("Inventory Not Found");
-                    return new InventoryNotFoundException(productId);
+                    return new ResourceNotFoundException("Inventory", "productId", productId.toString());
                 });
         int availableQuantity = inventory.getTotalQuantity() - inventory.getReservedQuantity();
         if (quantity < inventory.getReservedQuantity()) {
             log.error("Not enough inventory");
-            throw new NotEnoughInventoryException(
+            throw new NotEnoughStockException(
                     inventory.getProductId(),
                     quantity,
                     availableQuantity
