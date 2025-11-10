@@ -108,6 +108,12 @@
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-openfeign-core</artifactId>
         </dependency>
+        <dependency>
+            <groupId>com.mazadak</groupId>
+            <artifactId>mazadak-common-module</artifactId>
+            <version>1.0.16</version>
+        </dependency>
+
     </dependencies>
     <dependencyManagement>
         <dependencies>
@@ -120,6 +126,14 @@
             </dependency>
         </dependencies>
     </dependencyManagement>
+
+    <repositories>
+        <repository>
+            <id>github</id>
+            <name>Mazadak GitHub Packages</name>
+            <url>https://maven.pkg.github.com/Mazaadak/mazadak-common-module</url>
+        </repository>
+    </repositories>
 
     <build>
         <plugins>

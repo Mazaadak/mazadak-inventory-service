@@ -1,12 +1,12 @@
 package com.mazadak.inventory_service.service.Impl;
 
+import com.mazadak.common.exception.domain.inventory.NotEnoughStockException;
+import com.mazadak.common.exception.domain.inventory.ReservationExpiredException;
+import com.mazadak.common.exception.shared.ResourceNotFoundException;
 import com.mazadak.inventory_service.dto.request.ConfirmReservationRequest;
 import com.mazadak.inventory_service.dto.request.ReserveInventoryRequest;
 import com.mazadak.inventory_service.dto.request.reserveItemDTO;
 import com.mazadak.inventory_service.dto.response.InventoryReservationDTO;
-import com.mazadak.inventory_service.exception.NotEnoughInventoryException;
-import com.mazadak.inventory_service.exception.ReservationExpiredException;
-import com.mazadak.inventory_service.exception.ReservationNotFoundException;
 import com.mazadak.inventory_service.mapper.InventoryReservationMapper;
 import com.mazadak.inventory_service.model.Inventory;
 import com.mazadak.inventory_service.model.InventoryReservation;
@@ -65,7 +65,7 @@ public class InventoryReservationServiceImpl implements InventoryReservationServ
             log.info("Available quantity: {}", availableQuantity);
             if (availableQuantity < requestItem.quantity()) {
                 log.info("Not enough inventory");
-                throw new NotEnoughInventoryException(
+                throw new NotEnoughStockException(
                         inventory.getProductId(),
                         requestItem.quantity(),
                         availableQuantity
@@ -106,7 +106,7 @@ public class InventoryReservationServiceImpl implements InventoryReservationServ
         InventoryReservation inventoryReservation = inventoryReservationRepository.findById(reservationId)
                 .orElseThrow(() -> {
                             log.error("Reservation not found with id: {}", reservationId);
-                            return new ReservationNotFoundException(reservationId) ;});
+                            return new ResourceNotFoundException("Reservation", "Id", reservationId.toString());});
 
         log.info("Updating reservation status");
         inventoryReservation.release();
@@ -137,7 +137,7 @@ public class InventoryReservationServiceImpl implements InventoryReservationServ
             InventoryReservation inventoryReservation = inventoryReservationRepository.findById(reservationId)
                     .orElseThrow(() -> {
                         log.error("Reservation not found with id: {}", reservationId);
-                        return new ReservationNotFoundException(reservationId);
+                        return new ResourceNotFoundException("Reservation", "Id", reservationId.toString());
                     });
 
             log.info("Check for reservation expiration");
@@ -175,7 +175,7 @@ public class InventoryReservationServiceImpl implements InventoryReservationServ
         InventoryReservation inventoryReservation = inventoryReservationRepository.findById(reservationId)
                 .orElseThrow(() -> {
                     log.error("Reservation not found with id: {}", reservationId);
-                    return new ReservationNotFoundException(reservationId);
+                    return new ResourceNotFoundException("Reservation", "Id", reservationId.toString());
                 });
         return inventoryReservationMapper.toInventoryReservationDTO(inventoryReservation);
     }
