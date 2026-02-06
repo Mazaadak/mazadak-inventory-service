@@ -11,7 +11,7 @@
 - Swagger UI available at `http://localhost:18085/swagger-ui/index.html` when running locally
 
 ## How to Run
-You can run it via [Docker Compose](https://github.com/Mazaadak/mazadak-infrastructure) or [Kubernetes](https://github.com/Mazaadak/mazadak-k8s/)
+You can run it via [Docker Compose](https://github.com/Mazaadak/mazadak-infrastructure) <!-- or [Kubernetes](https://github.com/Mazaadak/mazadak-k8s/) -->
 
 ## Tech Stack
 - **Spring Boot 3.5.6** (Java 21) 
